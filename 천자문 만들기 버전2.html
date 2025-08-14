@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>천자문 작성기 (십이간지 문서 선택)</title>
+<style>
+  :root {
+      /* Light Mode (해☀️) colors - 밝고 쾌청한 낮 */
+      --body-bg: #fafafa;
+      --text-color: #333;
+      --header-bg: #4a90e2;
+      --header-text-color: white;
+      --table-bg: white;
+      --table-border: #bbb;
+      --button-bg: #4a90e2;
+      --button-hover-bg: #357abd;
+      --delete-button-bg: #d9534f;
+      --delete-button-hover-bg: #c9302c;
+      --select-border: #ccc;
+      --focus-outline: #4a90e2;
+      --duplicate-color: red;
+      --scroll-button-bg: rgba(74, 144, 226, 0.8);
+      --scroll-button-hover-bg: #4a90e2;
+      --modal-bg: rgba(0, 0, 0, 0.5);
+      --modal-content-bg: white;
+      --modal-content-border: #ddd;
+  }
+  body.slight-dark-mode {
+      /* Slight Dark Mode (해구름⛅) colors - 옅은 구름이 낀 낮, 눈에 편안함 */
+      --body-bg: #e0e0e0;
+      --text-color: #333;
+      --header-bg: #4a90e2;
+      --header-text-color: white;
+      --table-bg: #f5f5f5;
+      --table-border: #aaa;
+      --button-bg: #4a90e2;
+      --button-hover-bg: #357abd;
+      --delete-button-bg: #d9534f;
+      --delete-button-hover-bg: #c9302c;
+      --select-border: #bbb;
+      --focus-outline: #4a90e2;
+      --duplicate-color: red;
+      --scroll-button-bg: rgba(74, 144, 226, 0.8);
+      --scroll-button-hover-bg: #4a90e2;
+      --modal-bg: rgba(0, 0, 0, 0.5);
+      --modal-content-bg: #f5f5f5;
+      --modal-content-border: #ccc;
+  }
+  body.cloud-mode {
+      /* Cloud Mode (구름☁️) colors - 흐린 날씨, 차분한 초저녁 */
+      --body-bg: #3d3d3d;
+      --text-color: #f0f0f0;
+      --header-bg: #2d5d8b;
+      --header-text-color: #f0f0f0;
+      --table-bg: #4a4a4a;
+      --table-border: #666;
+      --button-bg: #666;
+      --button-hover-bg: #777;
+      --delete-button-bg: #d9534f;
+      --delete-button-hover-bg: #c9302c;
+      --select-border: #666;
+      --focus-outline: #81c3e0;
+      --duplicate-color: #ff8c8c;
+      --scroll-button-bg: rgba(74, 144, 226, 0.8);
+      --scroll-button-hover-bg: #4a90e2;
+      --modal-bg: rgba(0, 0, 0, 0.7);
+      --modal-content-bg: #4a4a4a;
+      --modal-content-border: #666;
+  }
+  body.moon-mode {
+      /* Moon Mode (보름달🌕) colors - 달이 뜬 밤, 어두운 배경 */
+      --body-bg: #222;
+      --text-color: #e0e0e0;
+      --header-bg: #2d5d8b;
+      --header-text-color: #e0e0e0;
+      --table-bg: #333;
+      --table-border: #555;
+      --button-bg: #555;
+      --button-hover-bg: #666;
+      --delete-button-bg: #a94442;
+      --delete-button-hover-bg: #8c3b39;
+      --select-border: #555;
+      --focus-outline: #81c3e0;
+      --duplicate-color: #ff6b6b;
+      --scroll-button-bg: rgba(74, 144, 226, 0.8);
+      --scroll-button-hover-bg: #4a90e2;
+      --modal-bg: rgba(0, 0, 0, 0.7);
+      --modal-content-bg: #333;
+      --modal-content-border: #555;
+  }
+  body.dark-mode {
+      /* Dark Mode (초승달🌙) colors - 가장 어두운 심야, 눈의 피로 최소화 */
+      --body-bg: #121212;
+      --text-color: #e0e0e0;
+      --header-bg: #333;
+      --header-text-color: #e0e0e0;
+      --table-bg: #222;
+      --table-border: #444;
+      --button-bg: #555;
+      --button-hover-bg: #666;
+      --delete-button-bg: #a94442;
+      --delete-button-hover-bg: #8c3b39;
+      --select-border: #555;
+      --focus-outline: #81c3e0;
+      --duplicate-color: #ff6b6b;
+      --scroll-button-bg: rgba(74, 144, 226, 0.8);
+      --scroll-button-hover-bg: #4a90e2;
+      --modal-bg: rgba(0, 0, 0, 0.7);
+      --modal-content-bg: #333;
+      --modal-content-border: #555;
+  }
+  body {
+    font-family: "Noto Sans KR", sans-serif;
+    margin: 20px;
+    background: var(--body-bg);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+  }
+  #docControls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  #docControls label, #docControls select, #docControls button {
+    vertical-align: middle;
+    font-size: 15px;
+  }
+  #docControls select {
+    width: 260px;
+    padding: 6px 8px;
+    margin-right: 10px;
+    border: 1px solid var(--select-border);
+    border-radius: 4px;
+    background: var(--table-bg);
+    color: var(--text-color);
+  }
+  #docControls .left-controls {
+      display: flex;
+      align-items: center;
+  }
+  #docControls button.action-button {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: none;
+    background-color: var(--button-bg);
+    color: var(--header-text-color);
+    cursor: pointer;
+    margin-right: 8px;
+  }
+  #docControls button.action-button:hover {
+    background-color: var(--button-hover-bg);
+  }
+  #themeToggleBtn {
+      font-size: 24px;
+      line-height: 1;
+      font-weight: bold;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: var(--table-bg);
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+    word-break: break-word;
+  }
+  th {
+    background-color: var(--header-bg);
+    color: var(--header-text-color);
+    user-select: none;
+  }
+  td.hanja-cell {
+    font-size: 22px;
+    cursor: text;
+    user-select: text;
+    min-height: 28px;
+    padding: 6px;
+  }
+  td.hanja-cell span.duplicate {
+    color: var(--duplicate-color);
+    font-weight: 700;
+  }
+  .reading-editable, .desc-editable, .hanja-editable {
+    width: 100%;
+    border: none;
+    padding: 6px;
+    box-sizing: border-box;
+    min-height: 28px;
+    outline: none;
+    cursor: text;
+    white-space: pre-wrap;
+    text-align: left;
+    color: var(--text-color);
+    background: transparent;
+  }
+  .reading-editable {
+    font-size: 22px;
+    text-align: center;
+  }
+  .desc-editable {
+    font-size: 16px;
+  }
+  .hanja-editable {
+    font-size: 22px;
+    text-align: center;
+  }
+  .active-cell {
+    box-shadow: 0 0 0 2px var(--focus-outline);
+    border-color: var(--focus-outline);
+  }
+  button.row-delete-btn {
+    background-color: var(--delete-button-bg);
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 5px 10px;
+  }
+  button.row-delete-btn:hover {
+    background-color: var(--delete-button-hover-bg);
+  }
+  .row-number {
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+  }
+  body.dark-mode .row-number, body.moon-mode .row-number, body.cloud-mode .row-number {
+    color: #aaa;
+  }
+  body.slight-dark-mode .row-number {
+      color: #666;
+  }
+  .scroll-buttons {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+  }
+  .scroll-buttons button {
+    background-color: var(--scroll-button-bg);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+  .scroll-buttons button:hover {
+    opacity: 1;
+  }
+  .scroll-buttons button svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+  /* Modal styles */
+  .modal {
+      display: none;
+      position: fixed;
+      z-index: 200;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: var(--modal-bg);
+  }
+  .modal-content {
+      background-color: var(--modal-content-bg);
+      color: var(--text-color);
+      padding: 20px;
+      border: 1px solid var(--modal-content-border);
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+  }
+  .close-button {
+      color: var(--text-color);
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+  }
+  .close-button:hover,
+  .close-button:focus {
+      color: var(--delete-button-bg);
+      text-decoration: none;
+      cursor: pointer;
+  }
+  .modal-content h3 {
+      border-bottom: 2px solid var(--table-border);
+      padding-bottom: 5px;
+  }
+  .modal-content ul {
+      list-style-type: disc;
+      padding-left: 20px;
+  }
+  .modal-content li {
+      margin-bottom: 10px;
+      line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="docControls">
+  <div class="left-controls">
+    <label for="docSelect">문서 선택:</label>
+    <select id="docSelect">
+      <option value="doc_자">자(子)</option>
+      <option value="doc_축">축(丑)</option>
+      <option value="doc_인">인(寅)</option>
+      <option value="doc_묘">묘(卯)</option>
+      <option value="doc_진">진(辰)</option>
+      <option value="doc_사">사(巳)</option>
+      <option value="doc_오">오(午)</option>
+      <option value="doc_미">미(未)</option>
+      <option value="doc_신">신(申)</option>
+      <option value="doc_유">유(酉)</option>
+      <option value="doc_술">술(戌)</option>
+      <option value="doc_해">해(亥)</option>
+    </select>
+    <button id="btnLoad" class="action-button">불러오기</button>
+    <button id="btnExport" class="action-button">내보내기</button>
+    <button id="btnInfo" class="action-button">설명</button>
+  </div>
+</div>
+
+<table id="tableCheonjamun" cellspacing="0" cellpadding="0">
+  <thead>
+    <tr>
+      <th style="width:3%;">순번</th>
+      <th style="width:18%;">한자</th>
+      <th style="width:18%;">음훈</th>
+      <th style="width:auto;">해설</th>
+      <th style="width:8%;">줄 삭제</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<div class="scroll-buttons">
+  <button id="themeToggleBtn" title="테마 전환">☀️</button>
+  <button id="scrollTopBtn" title="맨 위로"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></button>
+  <button id="scrollBottomBtn" title="맨 아래로"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
+</div>
+
+<div id="infoModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>사용 방법 안내</h2>
+    <p>이 웹 도구는 천자문을 작성하고 관리하는 데 도움을 줍니다.</p>
+    
+    <h3>문서 선택 및 불러오기</h3>
+    <ul>
+      <li>처음 페이지를 열면 마지막으로 작업했던 문서가 자동으로 로드됩니다.</li>
+      <li>다른 문서를 불러오려면, 드롭다운 메뉴에서 원하는 **문서를 선택**한 후 **[불러오기]** 버튼을 누르세요.</li>
+      <li>문서가 없을 경우 새 문서를 만들지 묻는 창이 나타납니다.</li>
+    </ul>
+
+    <h3>작성 및 수정</h3>
+    <ul>
+      <li>테이블의 각 칸을 클릭하여 내용을 입력하거나 수정할 수 있습니다.</li>
+      <li>한자 칸에 4글자를 입력하고 **Enter**를 누르거나, 다른 곳을 **마우스로 클릭**하면 자동으로 새 줄이 추가됩니다.</li>
+    </ul>
+    
+    <h3>중복 한자 확인</h3>
+    <ul>
+      <li>작성된 한자들 중에 **중복된 한자**는 자동으로 **붉은색**으로 표시됩니다.</li>
+      <li>중복 체크는 한자 칸의 내용을 수정하거나 새 줄을 추가할 때마다 자동으로 이루어집니다.</li>
+    </ul>
+    
+    <h3>기타 기능</h3>
+    <ul>
+      <li>오른쪽 아래의 **테마 전환 버튼**을 눌러 총 5단계의 테마를 변경할 수 있습니다.
+        <br>☀️ (밝은 낮) → ⛅ (흐린 낮) → ☁️ (초저녁) → 🌕 (밤) → 🌙 (심야)
+      </li>
+      <li>각 줄의 **[지우기]** 버튼을 누르면 해당 줄이 삭제됩니다.</li>
+      <li>오른쪽 아래의 **스크롤 버튼**을 이용해 페이지 맨 위/아래로 빠르게 이동할 수 있습니다.</li>
+      <li>**[내보내기]** 버튼을 누르면 현재 문서의 내용이 클립보드에 복사되어 엑셀 등에 붙여넣기 할 수 있습니다.</li>
+      <li>데이터 저장: 문서 내용은 사용자의 컴퓨터 브라우저에 저장됩니다. 컴퓨터를 포맷하거나 브라우저 캐시를 삭제하지 않는 한 데이터가 유지됩니다. 중요한 자료는 **[내보내기]** 기능을 이용해 정기적으로 백업하는 것을 권장합니다.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(() => {
+  const tbody = document.querySelector('#tableCheonjamun tbody');
+  const docSelect = document.getElementById('docSelect');
+  const btnLoad = document.getElementById('btnLoad');
+  const btnExport = document.getElementById('btnExport');
+  const btnInfo = document.getElementById('btnInfo');
+  const infoModal = document.getElementById('infoModal');
+  const closeButton = infoModal.querySelector('.close-button');
+  const scrollTopBtn = document.getElementById('scrollTopBtn');
+  const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  
+  // 테마 상태 및 설정
+  const themes = [
+    { name: 'light', icon: '☀️', class: '' },
+    { name: 'slight-dark', icon: '⛅', class: 'slight-dark-mode' },
+    { name: 'cloud', icon: '☁️', class: 'cloud-mode' },
+    { name: 'moon', icon: '🌕', class: 'moon-mode' },
+    { name: 'dark', icon: '🌙', class: 'dark-mode' }
+  ];
+
+  function applyTheme(themeName) {
+    const theme = themes.find(t => t.name === themeName);
+    document.body.className = '';
+    if (theme.class) {
+      document.body.classList.add(theme.class);
+    }
+    themeToggleBtn.textContent = theme.icon;
+    themeToggleBtn.title = `테마 전환: ${theme.name} 모드`;
+    localStorage.setItem('theme', theme.name);
+  }
+
+  // 초기 테마 로드
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  applyTheme(savedTheme);
+
+  // Theme toggle button click event
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    const currentIndex = themes.findIndex(t => t.name === currentTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    applyTheme(themes[nextIndex].name);
+  });
+
+  // 중복 한자 체크 & 빨간색 표시
+  function highlightDuplicates() {
+    const counts = {};
+    const editableDivs = [...tbody.querySelectorAll('div.hanja-editable')];
+    
+    const rowsToCount = editableDivs.slice(0, -1);
+
+    rowsToCount.forEach(div => {
+      const text = div.textContent.trim();
+      for (const ch of text) {
+        if(ch !== '') {
+          counts[ch] = (counts[ch] || 0) + 1;
+        }
+      }
+    });
+
+    editableDivs.forEach(div => {
+      const text = div.textContent.trim();
+      div.innerHTML = '';
+      for (const ch of text) {
+        const span = document.createElement('span');
+        span.textContent = ch;
+        if(counts[ch] > 1) {
+          span.classList.add('duplicate');
+        }
+        div.appendChild(span);
+      }
+      if(text.length === 0) div.innerHTML = '<br>';
+    });
+  }
+
+  // 순번 업데이트
+  function updateRowNumbers() {
+      const rows = tbody.querySelectorAll('tr:not(.blank-row)');
+      rows.forEach((row, index) => {
+          let numberCell = row.querySelector('.row-number');
+          if (!numberCell) {
+              const td = document.createElement('td');
+              td.classList.add('row-number');
+              row.prepend(td);
+              numberCell = td;
+          }
+          numberCell.textContent = index + 1;
+      });
+  }
+  
+  // 새로운 행 추가 (빈 줄 제외)
+  function addRow(hanja='', reading='', desc='') {
+    const tr = document.createElement('tr');
+
+    const tdNumber = document.createElement('td');
+    tdNumber.classList.add('row-number');
+    tdNumber.textContent = '';
+    
+    const tdHanja = document.createElement('td');
+    tdHanja.classList.add('hanja-cell');
+    const hanjaDiv = document.createElement('div');
+    hanjaDiv.classList.add('hanja-editable');
+    hanjaDiv.contentEditable = 'true';
+    hanjaDiv.spellcheck = false;
+    hanjaDiv.textContent = hanja;
+    tdHanja.appendChild(hanjaDiv);
+    
+    const tdReading = document.createElement('td');
+    const readingDiv = document.createElement('div');
+    readingDiv.classList.add('reading-editable');
+    readingDiv.contentEditable = 'true';
+    readingDiv.spellcheck = false;
+    readingDiv.textContent = reading;
+    tdReading.appendChild(readingDiv);
+    
+    const tdDesc = document.createElement('td');
+    const descDiv = document.createElement('div');
+    descDiv.classList.add('desc-editable');
+    descDiv.contentEditable = 'true';
+    descDiv.spellcheck = false;
+    descDiv.textContent = desc;
+    tdDesc.appendChild(descDiv);
+    
+    const tdDel = document.createElement('td');
+    const btnDel = document.createElement('button');
+    btnDel.textContent = '지우기';
+    btnDel.classList.add('row-delete-btn');
+    tdDel.appendChild(btnDel);
+
+    tr.appendChild(tdNumber);
+    tr.appendChild(tdHanja);
+    tr.appendChild(tdReading);
+    tr.appendChild(tdDesc);
+    tr.appendChild(tdDel);
+
+    tbody.appendChild(tr);
+  }
+
+  // 빈 입력 줄 생성
+  function addBlankRow() {
+    const tr = document.createElement('tr');
+    tr.classList.add('blank-row');
+
+    const tdNumber = document.createElement('td');
+    tdNumber.classList.add('row-number');
+    
+    const tdHanja = document.createElement('td');
+    tdHanja.classList.add('hanja-cell');
+    const hanjaDiv = document.createElement('div');
+    hanjaDiv.classList.add('hanja-editable');
+    hanjaDiv.contentEditable = 'true';
+    hanjaDiv.spellcheck = false;
+    tdHanja.appendChild(hanjaDiv);
+    
+    const tdReading = document.createElement('td');
+    const readingDiv = document.createElement('div');
+    readingDiv.classList.add('reading-editable');
+    readingDiv.contentEditable = 'true';
+    readingDiv.spellcheck = false;
+    tdReading.appendChild(readingDiv);
+    
+    const tdDesc = document.createElement('td');
+    const descDiv = document.createElement('div');
+    descDiv.classList.add('desc-editable');
+    descDiv.contentEditable = 'true';
+    descDiv.spellcheck = false;
+    tdDesc.appendChild(descDiv);
+    
+    const tdDel = document.createElement('td');
+    
+    tr.appendChild(tdNumber);
+    tr.appendChild(tdHanja);
+    tr.appendChild(tdReading);
+    tr.appendChild(tdDesc);
+    tr.appendChild(tdDel);
+
+    tbody.appendChild(tr);
+    hanjaDiv.focus();
+  }
+
+  // 테이블 데이터 객체로 추출
+  function getData() {
+    const data = [];
+    const rows = [...tbody.children].slice(0, -1);
+    rows.forEach(tr => {
+      const hanjaDiv = tr.querySelector('div.hanja-editable');
+      const readingDiv = tr.querySelector('div.reading-editable');
+      const descDiv = tr.querySelector('div.desc-editable');
+      data.push({
+        hanja: hanjaDiv.textContent.trim(),
+        reading: readingDiv.textContent.trim(),
+        desc: descDiv.textContent.trim()
+      });
+    });
+    return data;
+  }
+
+  // 데이터로 테이블 초기화
+  function setData(data) {
+    tbody.innerHTML = '';
+    data.forEach(row => {
+      addRow(row.hanja || '', row.reading || '', row.desc || '');
+    });
+    addBlankRow();
+    highlightDuplicates();
+    updateRowNumbers();
+    updateDocSelectOptions();
+  }
+
+  // 저장 - 자동 저장 함수
+  function autoSave() {
+    const key = docSelect.value;
+    const data = getData();
+    localStorage.setItem(key, JSON.stringify(data));
+    updateDocSelectOptions();
+  }
+  
+  // 드롭다운 메뉴의 줄 수 표시 업데이트
+  function updateDocSelectOptions() {
+      const options = docSelect.options;
+      for (let i = 0; i < options.length; i++) {
+          const option = options[i];
+          const key = option.value;
+          const dataStr = localStorage.getItem(key);
+          let count = 0;
+          if (dataStr) {
+              try {
+                  const data = JSON.parse(dataStr);
+                  count = data.length;
+              } catch(e) {
+                  count = 0;
+              }
+          }
+          const originalText = option.getAttribute('data-original-text') || option.text.split(' - ')[0];
+          option.setAttribute('data-original-text', originalText);
+          
+          if (count === 0) {
+              option.text = `${originalText} - 문서 없음`;
+          } else {
+              option.text = `${originalText} - 총 ${count}줄 기록`;
+          }
+      }
+  }
+
+  // 문서 불러오기 (버튼 클릭 시)
+  function loadDoc() {
+      const key = docSelect.value;
+      const dataStr = localStorage.getItem(key);
+      if(!dataStr) {
+          if(confirm(`${docSelect.options[docSelect.selectedIndex].getAttribute('data-original-text')} 문서가 없습니다. 새 문서를 만드시겠습니까?`)) {
+              setData([]);
+              localStorage.setItem(key, JSON.stringify([])); // 빈 문서 저장
+              alert(`${docSelect.options[docSelect.selectedIndex].getAttribute('data-original-text')} 문서를 새로 만들었습니다.`);
+          }
+      } else {
+          try {
+              const data = JSON.parse(dataStr);
+              setData(data);
+              alert(`${docSelect.options[docSelect.selectedIndex].getAttribute('data-original-text')} 문서를 불러왔습니다.`);
+          } catch(e) {
+              alert('문서 불러오기 중 오류가 발생했습니다.');
+              setData([]);
+              localStorage.setItem(key, JSON.stringify([])); // 오류 시 빈 문서로 초기화
+          }
+      }
+      localStorage.setItem('lastActiveDocId', key); // 불러온 문서를 마지막으로 편집한 문서로 설정
+  }
+  
+  // 문서 불러오기 (초기 로드용, 알림 없음)
+  function initialLoadDoc() {
+      const lastActiveDocId = localStorage.getItem('lastActiveDocId') || 'doc_자';
+      docSelect.value = lastActiveDocId;
+      const dataStr = localStorage.getItem(lastActiveDocId);
+      if (dataStr) {
+          try {
+              const data = JSON.parse(dataStr);
+              setData(data);
+          } catch(e) {
+              setData([]);
+          }
+      } else {
+          setData([]);
+      }
+      updateDocSelectOptions();
+  }
+
+  // '내보내기' 기능 추가
+  function exportTableToClipboard() {
+      const tableRows = tbody.querySelectorAll('tr:not(.blank-row)');
+      let exportText = '순번\t한자\t음훈\t해설\n'; // 헤더 추가
+
+      tableRows.forEach(row => {
+          const rowNumber = row.querySelector('.row-number').textContent;
+          const hanja = row.querySelector('.hanja-editable').textContent.trim();
+          const reading = row.querySelector('.reading-editable').textContent.trim();
+          const desc = row.querySelector('.desc-editable').textContent.trim();
+          
+          exportText += `${rowNumber}\t${hanja}\t${reading}\t${desc}\n`;
+      });
+      
+      navigator.clipboard.writeText(exportText)
+          .then(() => {
+              alert('표 내용이 클립보드에 복사되었습니다.');
+          })
+          .catch(err => {
+              console.error('클립보드 복사 실패:', err);
+              alert('클립보드 복사에 실패했습니다.');
+          });
+  }
+
+  // 이벤트 연결
+  btnLoad.addEventListener('click', loadDoc);
+  btnExport.addEventListener('click', exportTableToClipboard); // '내보내기' 버튼 이벤트 연결
+
+  docSelect.addEventListener('change', () => {
+    // 문서 선택 드롭다운이 변경될 때, 마지막으로 선택된 문서를 저장만 하고 화면을 비우지 않음
+    localStorage.setItem('lastActiveDocId', docSelect.value);
+  });
+
+  tbody.addEventListener('click', e => {
+    if(e.target.classList.contains('row-delete-btn')) {
+      e.target.closest('tr').remove();
+      highlightDuplicates();
+      autoSave();
+      updateRowNumbers();
+    }
+  });
+
+  // 수정 완료 시 중복 체크 및 저장
+  tbody.addEventListener('blur', e => {
+    const row = e.target.closest('tr');
+    if (!row) return;
+
+    const hanjaDiv = e.target.closest('div.hanja-editable');
+    const currentRow = e.target.closest('tr');
+    const blankRow = tbody.querySelector('.blank-row');
+
+    // 빈 줄의 한자 입력 칸에서 포커스를 잃고, 4글자가 입력되었을 때
+    if (currentRow === blankRow && hanjaDiv && hanjaDiv.textContent.trim().length === 4) {
+        currentRow.classList.remove('blank-row');
+        
+        const deleteButtonCell = currentRow.querySelector('td:last-child');
+        let btnDel = deleteButtonCell.querySelector('.row-delete-btn');
+        if (!btnDel) {
+            btnDel = document.createElement('button');
+            btnDel.textContent = '지우기';
+            btnDel.classList.add('row-delete-btn');
+            deleteButtonCell.appendChild(btnDel);
+        }
+
+        addBlankRow();
+        highlightDuplicates();
+        autoSave();
+        updateRowNumbers();
+
+        const readingDivInSameRow = currentRow.querySelector('div.reading-editable');
+        if (readingDivInSameRow) {
+            readingDivInSameRow.focus();
+        }
+    } else {
+        // 기존 행의 경우, 그냥 저장하고 중복 체크
+        if (!currentRow.classList.contains('blank-row')) {
+            highlightDuplicates();
+            autoSave();
+        }
+    }
+  }, true);
+
+  // 활성 셀 강조 효과
+  tbody.addEventListener('focusin', e => {
+      const currentActiveCell = tbody.querySelector('.active-cell');
+      if (currentActiveCell) {
+          currentActiveCell.classList.remove('active-cell');
+      }
+      const targetDiv = e.target.closest('div[contenteditable="true"]');
+      if (targetDiv) {
+          targetDiv.classList.add('active-cell');
+      }
+  });
+
+  tbody.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.closest('div[contenteditable="true"]')) {
+      e.preventDefault();
+      
+      const targetElement = e.target;
+      const currentRow = targetElement.closest('tr');
+      const nextRow = currentRow.nextElementSibling;
+      const blankRow = tbody.querySelector('.blank-row');
+      
+      const hanjaDiv = targetElement.closest('div.hanja-editable');
+      const readingDiv = targetElement.closest('div.reading-editable');
+      const descDiv = targetElement.closest('div.desc-editable');
+
+      if (currentRow === blankRow) {
+          if (hanjaDiv && hanjaDiv.textContent.trim().length === 4) {
+              
+              currentRow.classList.remove('blank-row');
+              
+              const deleteButtonCell = currentRow.querySelector('td:last-child');
+              let btnDel = deleteButtonCell.querySelector('.row-delete-btn');
+              if (!btnDel) {
+                  btnDel = document.createElement('button');
+                  btnDel.textContent = '지우기';
+                  btnDel.classList.add('row-delete-btn');
+                  deleteButtonCell.appendChild(btnDel);
+              }
+
+              addBlankRow();
+              highlightDuplicates();
+              autoSave();
+              updateRowNumbers();
+              
+              const readingDivInSameRow = currentRow.querySelector('div.reading-editable');
+              if (readingDivInSameRow) {
+                  readingDivInSameRow.focus();
+              }
+          } else {
+              alert('한자 4글자를 정확히 입력해주세요.');
+          }
+      } else { // 기존 행에서 엔터 키를 눌렀을 때
+          if (hanjaDiv) {
+              const readingDivInSameRow = currentRow.querySelector('div.reading-editable');
+              if (readingDivInSameRow) {
+                  readingDivInSameRow.focus();
+              }
+          } else if (readingDiv) {
+              const descDivInSameRow = currentRow.querySelector('div.desc-editable');
+              if (descDivInSameRow) {
+                  descDivInSameRow.focus();
+              }
+          } else if (descDiv) {
+              if (nextRow) {
+                  nextRow.querySelector('div.hanja-editable').focus();
+              } else {
+                  if(blankRow) {
+                      blankRow.querySelector('div.hanja-editable').focus();
+                  }
+              }
+          }
+      }
+    }
+  });
+
+  // 스크롤 버튼 이벤트 리스너
+  scrollTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  scrollBottomBtn.addEventListener('click', () => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  });
+
+  // Info modal event listeners
+  btnInfo.addEventListener('click', () => {
+      infoModal.style.display = 'block';
+  });
+  closeButton.addEventListener('click', () => {
+      infoModal.style.display = 'none';
+  });
+  window.addEventListener('click', (event) => {
+      if (event.target === infoModal) {
+          infoModal.style.display = 'none';
+      }
+  });
+
+  // 초기 로드 시 첫 문서 불러오기 시도
+  window.addEventListener('load', () => {
+    initialLoadDoc();
+  });
+})();
+</script>
+
+</body>
+</html>
